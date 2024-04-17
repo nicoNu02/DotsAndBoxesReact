@@ -1,3 +1,3 @@
 # Dots and Boxes
-##npm run dev
-##npm run server
+-npm run dev
+-npm run server
