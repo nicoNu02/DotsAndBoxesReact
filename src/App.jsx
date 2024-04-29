@@ -1,9 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
-import Dot from "./components/Dot";
-import LineHorizontal from "./components/LineHorizontal";
-import LineVertical from "./components/LineVertical";
-import SquareCenter from "./components/SquareCenter";
 import Board from "./components/Board";
 import useModals from "./hooks/useModals";
 import ModalWinner from "./components/ModalWinner";
@@ -21,16 +17,7 @@ import { io } from "socket.io-client";
 //   [0, 0, 0, 0, 0, 0, 0],
 //   [0, 0, 0, 0, 0, 0],
 // ];
-function fillBoard(boardSize) {
-  let arr = [];
-  let arr1 = Array(boardSize).fill(0);
-  let arr2 = Array(boardSize + 1).fill(0);
-  for (let i = 0; i <= boardSize * 2; i++) {
-    if (i % 2 == 0) arr.push(arr1);
-    else arr.push(arr2);
-  }
-  return arr;
-}
+
 const initialCompleted = {
   red: [],
   blue: [],
@@ -38,95 +25,109 @@ const initialCompleted = {
 
 //horizontal = odd row
 // vertical even row
-const socket = io("http://localhost:3000", { autoConnect: true });
 function App() {
   //TODO: GAME OVER WHEN PLAYER SCORE > BOARDSIZE^2 / 2
   const [boardSize, setBoardSize] = useState(5);
-  let initialBoard = fillBoard(boardSize);
-  const [board, setBoard] = useState(initialBoard);
+  // let initialBoard = fillBoard(boardSize);
+  const [board, setBoard] = useState(null);
   const [turn, setTurn] = useState(false); // false = red -- true = blue
   const [score, setScore] = useState([0, 0]); // red--blue
   const [completedPositions, setCompletedPositions] =
     useState(initialCompleted);
   const [showModalWinner, toggleModalWinner] = useModals();
   const [lastWinner, setLastWinner] = useState([]);
-  const [connected, setConnected] = useState(true);
-  const handleClick = (row, col) => {
-    const {
-      newBoard: newSquarePosition,
-      completed: completedSquare,
-      points,
-      squareCompleted,
-      selected: selected,
-    } = checkSquareCompleted(row, col, board, turn, completedPositions);
-    setBoard(newSquarePosition);
-    setCompletedPositions((prevCompletedPositions) => ({
-      ...prevCompletedPositions,
-      red: [...squareCompleted.red],
-      blue: [...squareCompleted.blue],
-    }));
+  const [socket, setSocket] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const [playerName, setPlayerName] = useState("");
+  const [opponentName, setOpponentName] = useState(null);
 
-    completedSquare
-      ? turn
-        ? setScore([score[0], score[1] + points])
-        : setScore([score[0] + points, score[1]])
-      : !selected && setTurn(!turn);
-    socket.emit("board", newSquarePosition);
+  const handleClick = (row, col) => {
+    socket?.emit("lineClickedFromClient", {
+      row,
+      col,
+      clientBoard: board,
+    });
   };
-  socket?.on("connect", (socket) => {
-    setConnected(!connected);
-  });
-  const handleSquareClick = (row, col) => {};
+
+  const handleSquareClick = (row, col) => {
+    socket?.emit("caca", "12312313213123123123123");
+  };
   const resetBoard = () => {
-    setBoard(initialBoard);
+    // setBoard(initialBoard);
     setCompletedPositions(initialCompleted);
     setScore([0, 0]);
   };
-  useEffect(() => {
-    if (score[0] > (boardSize * boardSize) / 2) {
-      setLastWinner(["Red", score[0]]);
-      resetBoard();
-      toggleModalWinner();
 
-      console.log("red wins");
-    }
-    if (score[1] > (boardSize * boardSize) / 2) {
-      setLastWinner(["Blue", score[1]]);
-      resetBoard();
-      toggleModalWinner();
-      console.log("blue wins");
-    }
-  }, [score]);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newSocket = io("http://localhost:3000", {
+      autoConnect: true,
+    });
+    newSocket?.emit("req-to-play", playerName);
+    setSocket(newSocket);
+    setConnected(true);
+  };
 
+  socket?.on("winner", (data) => {
+    setLastWinner(data);
+    toggleModalWinner();
+  });
+
+  socket?.on("opponent-found", (data) => {
+    setOpponentName(data.opponentName);
+    setBoard(data.board);
+  });
+  socket?.on("update", (data) => {
+    const { board, turn, score, completedPositions } = data;
+    setTurn(turn);
+    setScore(score);
+    setBoard(board);
+    setCompletedPositions(completedPositions);
+  });
+  socket?.on("hello", (d) => {
+    console.log(d);
+  });
   const handleChange = (e) => {
     const num = parseInt(e.target.value);
     setBoardSize(num);
-    initialBoard = fillBoard(num);
+    // initialBoard = fillBoard(num);
     resetBoard();
   };
   return (
     <>
-      {connected && (
-        <div>
-          <h1>Hola {socket.id}</h1>
-          {console.log(connected)}
-        </div>
+      {!connected && (
+        <form onSubmit={handleSubmit}>
+          <input onChange={(e) => setPlayerName(e.target.value)}></input>
+          <button type="submit">Enviar</button>
+        </form>
       )}
-      <select name="size" onChange={handleChange}>
-        <option value={5}>5x5</option>
-        <option value={6}>6x6</option>
-        <option value={7}>7x7</option>
-      </select>
-      <h1 className="score">
-        Red: {score[0]} Blue: {score[1]}
-      </h1>
-      <Board
-        board={board}
-        boardSize={boardSize}
-        completedPositions={completedPositions}
-        handleClick={handleClick}
-        handleSquareClick={handleSquareClick}
-      />
+      {connected && !opponentName && (
+        <h1 style={{ color: "black" }}>Esperando oponente</h1>
+      )}
+      {connected && opponentName && (
+        <>
+          <h1 style={{ color: "black" }}>
+            Hola {playerName}, rival {opponentName}
+          </h1>
+          <h2>{turn ? "Blue turn" : "Red Turn"}</h2>
+          <select name="size" onChange={handleChange}>
+            <option value={5}>5x5</option>
+            <option value={6}>6x6</option>
+            <option value={7}>7x7</option>
+          </select>
+          <h1 className="score">
+            Red: {score[0]} Blue: {score[1]}
+          </h1>
+          <Board
+            board={board}
+            boardSize={boardSize}
+            completedPositions={completedPositions}
+            handleClick={handleClick}
+            handleSquareClick={handleSquareClick}
+          />
+        </>
+      )}
+
       {showModalWinner && (
         <ModalWinner
           lastWinner={lastWinner}
