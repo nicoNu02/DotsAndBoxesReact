@@ -55,9 +55,12 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newSocket = io("wss://dotsandboxeswsserver.glitch.me/", {
-      autoConnect: true,
-    });
+    const newSocket = io(
+      import.meta.env.SERVER_URL || "http://localhost:3000",
+      {
+        autoConnect: true,
+      }
+    );
     newSocket?.emit("req-to-play", playerName);
     setSocket(newSocket);
     setConnected(true);
