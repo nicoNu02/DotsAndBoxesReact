@@ -88,6 +88,9 @@ function App() {
     setBoardSize(num);
     resetBoard();
   };
+  const handleResetBoard = () => {
+    socket?.emit("reset");
+  };
   return (
     <>
       {!connected && (
@@ -128,12 +131,18 @@ function App() {
           <h3 style={{ color: "white" }} className="score">
             Red: {score[0]} Blue: {score[1]}
           </h3>
+
           <Board
             board={board}
             boardSize={boardSize}
             completedPositions={completedPositions}
             handleClick={handleClick}
           />
+          {isHost ? (
+            <button className={"reset-board-button"} onClick={handleResetBoard}>
+              Reset Board
+            </button>
+          ) : null}
         </>
       )}
 

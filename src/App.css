@@ -131,6 +131,21 @@ body {
   cursor: pointer;
 }
 
+.reset-board-button {
+  cursor: pointer;
+
+  width: 8rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  background-color: #dc354669;
+  border: #dc3545 2px solid;
+
+  font-size: 1.1rem;
+  color: white;
+
+  margin-top: 2rem;
+}
+
 .form-player > button:hover {
   background-color: #ee7bf1;
   scale: 110%;

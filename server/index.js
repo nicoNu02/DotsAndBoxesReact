@@ -12,8 +12,10 @@ const initialCompletedPositions = {
   red: [],
   blue: [],
 };
+
 const boardSize = 5;
-let board = fillBoard(boardSize);
+const initialBoard = fillBoard(boardSize);
+let board = initialBoard;
 const allUsers = {};
 const allRooms = [];
 let score = [0, 0];
@@ -158,7 +160,24 @@ io.on("connection", (socket) => {
       });
     }
   });
-
+  socket.on("reset", () => {
+    board = initialBoard;
+    score = [0, 0];
+    turn = false;
+    completedPositions = initialCompletedPositions;
+    currentUSer?.socket.emit("update", {
+      board: board,
+      score: score,
+      turn: turn,
+      completedPositions: completedPositions,
+    });
+    opponentPlayer?.socket.emit("update", {
+      board: board,
+      score: score,
+      turn: turn,
+      completedPositions: completedPositions,
+    });
+  });
   socket.on("disconnect", (socket) => {
     console.log(
       socket,
