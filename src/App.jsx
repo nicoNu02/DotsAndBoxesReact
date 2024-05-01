@@ -55,7 +55,7 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io("https://dotsandboxeswsserver.glitch.me/", {
       autoConnect: true,
     });
     newSocket?.emit("req-to-play", playerName);
