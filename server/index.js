@@ -28,31 +28,69 @@ io.on("connection", (socket) => {
   };
 
   socket.on("req-to-play", (data) => {
-    currentUSer = allUsers[socket.id];
-    currentUSer.playerName = data;
+    if (allRooms[0]) {
+      if (!allRooms[0].player2.online) {
+        currentUSer = allUsers[socket.id];
+        currentUSer.playerName = data;
 
-    for (const key in allUsers) {
-      const user = allUsers[key];
-      if (user.online && socket.id !== key) {
-        opponentPlayer = user;
-        break;
+        for (const key in allUsers) {
+          const user = allUsers[key];
+          if (user.online && socket.id !== key) {
+            opponentPlayer = user;
+            break;
+          }
+        }
+      } else if (!allRooms[0].player1.online) {
+        opponentPlayer = allUsers[socket.id];
+        opponentPlayer.playerName = data;
+
+        for (const key in allUsers) {
+          const user = allUsers[key];
+          if (user.online && socket.id !== key) {
+            currentUSer = user;
+            break;
+          }
+        }
+      }
+    } else {
+      currentUSer = allUsers[socket.id];
+      currentUSer.playerName = data;
+
+      for (const key in allUsers) {
+        const user = allUsers[key];
+        if (user.online && socket.id !== key) {
+          opponentPlayer = user;
+          break;
+        }
       }
     }
     if (opponentPlayer) {
-      allRooms.push({
+      allRooms[0] = {
         player1: opponentPlayer,
         player2: currentUSer,
-      });
+      };
       currentUSer?.socket.emit("opponent-found", {
         opponentName: opponentPlayer?.playerName,
         board: board,
+        isHost: false,
+        completedPositions,
+        score,
+        turn,
       });
       opponentPlayer?.socket.emit("opponent-found", {
         opponentName: currentUSer?.playerName,
         board: board,
+        isHost: true,
+        completedPositions,
+        score,
+        turn,
       });
     }
     console.log(allRooms);
+    console.log(
+      opponentPlayer?.socket.connected,
+      currentUSer?.socket.connected
+    );
   });
 
   socket.on("lineClickedFromClient", (data) => {
@@ -122,6 +160,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (socket) => {
+    console.log(
+      socket,
+      opponentPlayer.socket.connected,
+      currentUSer.socket.connected
+    );
+    if (!opponentPlayer.socket.connected) {
+      allRooms[0].player1.online = false;
+    }
+    if (!currentUSer.socket.connected) {
+      allRooms[0].player2.online = false;
+    }
+    console.log(socket, allRooms);
     console.log("disconnect");
   });
 });

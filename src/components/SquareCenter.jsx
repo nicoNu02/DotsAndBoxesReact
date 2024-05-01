@@ -1,4 +1,4 @@
-const SquareCenter = ({ handleSquareClick, pos, completedPositions }) => {
+const SquareCenter = ({ pos, completedPositions }) => {
   const containsPosRed = containsTuple(completedPositions.red, pos);
   const containsPosBlue = containsTuple(completedPositions.blue, pos);
   let stateClass = containsPosRed
@@ -6,12 +6,7 @@ const SquareCenter = ({ handleSquareClick, pos, completedPositions }) => {
     : containsPosBlue
     ? "completed-blue"
     : "";
-  return (
-    <div
-      className={`square-center ${stateClass}`}
-      onClick={handleSquareClick}
-    ></div>
-  );
+  return <div className={`square-center ${stateClass}`}></div>;
 };
 
 export default SquareCenter;
