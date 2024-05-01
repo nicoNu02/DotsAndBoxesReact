@@ -1,16 +1,11 @@
+/* eslint-disable react/prop-types */
 import useMediaQuery from "../hooks/useMedia";
 import Dot from "./Dot";
 import LineHorizontal from "./LineHorizontal";
 import LineVertical from "./LineVertical";
 import SquareCenter from "./SquareCenter";
 
-const Board = ({
-  boardSize,
-  board,
-  handleClick,
-  handleSquareClick,
-  completedPositions,
-}) => {
+const Board = ({ boardSize, board, handleClick, completedPositions }) => {
   const md = useMediaQuery("(max-width: 500px)");
   const stylesLarge = {
     display: "grid",
@@ -69,7 +64,6 @@ const Board = ({
             <>
               <SquareCenter
                 key={`${index}${i}"sqr"`}
-                handleSquareClick={() => handleSquareClick(index, i)}
                 pos={[index, i]}
                 completedPositions={completedPositions}
               />
