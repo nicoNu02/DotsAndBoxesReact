@@ -52,11 +52,11 @@ function App() {
     setCompletedPositions(initialCompleted);
     setScore([0, 0]);
   };
-
+  console.log(import.meta.env.VITE_SERVER_URL);
   const handleSubmit = (e) => {
     e.preventDefault();
     const newSocket = io(
-      import.meta.env.SERVER_URL || "http://localhost:3000",
+      import.meta.env.VITE_SERVER_URL || "http://localhost:3000",
       {
         autoConnect: true,
       }
